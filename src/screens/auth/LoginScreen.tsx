@@ -1,24 +1,65 @@
-import React from "react";
-import { View, Text, Button, StyleSheet } from 'react-native';
+import React, { useState } from "react";
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type AuthStackParamList = {
-    Login: undefined;
-    Register: undefined;
-};
+export default function LoginScreen({ navigation }: any) {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+    async function handleLogin() {
+        try {
+            const savedEmail = await SecureStore.getItemAsync('userEmail');
+            const savedPassword = await SecureStore.getItemAsync('userPassword');
 
-export default function LoginScreen({ navigation }: Props) {
+            if (email === savedEmail && password === savedPassword) {
+                await AsyncStorage.setItem('isLoggedIn', 'true');
+                Alert.alert('Inloggad!', 'Du är nu inloggad.');
+                //navigera till AppStack (sker via RootNavigator senare)
+            } else {
+                Alert.alert('Fel', 'Fel e-post eller lösenord.');
+            }
+        } catch(error) {
+            console.error(error);
+        }
+    }
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Logga in</Text>
-            <Button title="Gå till Registrering" onPress={() => navigation.navigate('Register')} />
+            <TextInput
+                style={styles.input}
+                placeholder="E-post"
+                value={email}
+                onChangeText={setEmail}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Lösenord"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+            />
+            <Button title="Logga in" onPress={handleLogin} />
+            <Button
+                title="Gå till Registrering"
+                onPress={() => navigation.navigate('Register')}
+            />
         </View>
-    );
+    )
+
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    title: { fontSize: 24, fontWeight: 'bold' },
+  container: { flex: 1, justifyContent: 'center', padding: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginBottom: 15,
+    borderRadius: 5,
+  },
 });
+
