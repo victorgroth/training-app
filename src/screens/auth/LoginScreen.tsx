@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthContext } from '../../context/AuthContext';
+
 
 export default function LoginScreen({ navigation }: any) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const { login } = useContext(AuthContext);
+
 
     async function handleLogin() {
         try {
@@ -14,9 +18,7 @@ export default function LoginScreen({ navigation }: any) {
             const savedPassword = await SecureStore.getItemAsync('userPassword');
 
             if (email === savedEmail && password === savedPassword) {
-                await AsyncStorage.setItem('isLoggedIn', 'true');
-                Alert.alert('Inloggad!', 'Du är nu inloggad.');
-                //navigera till AppStack (sker via RootNavigator senare)
+               login();
             } else {
                 Alert.alert('Fel', 'Fel e-post eller lösenord.');
             }
