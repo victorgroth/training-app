@@ -1,84 +1,166 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Haptics from 'expo-haptics';
-import { AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY } from "expo-secure-store";
+import {
+  View,
+  StyleSheet,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Haptics from "expo-haptics";
+import {
+  StepCategory,
+  StepGymMuscleGroup,
+  StepGymExercise,
+  StepGymSetsReps,
+  StepGymDate,
+  StepRunningType,
+  StepRunningDetails,
+  StepRunningDate,
+} from "../../components/logWorkout/WorkoutSteps";
+import { MuscleGroup } from "../../data/exercises";
 
 export default function LogWorkoutScreen() {
-  const [type, setType] = useState('');
-  const [duration, setDuration] = useState('');
-  const [notes, setNotes] = useState('');
+  const [category, setCategory] = useState<"gym" | "running" | null>(null);
+  const [step, setStep] = useState(1);
+
+  const [muscleGroup, setMuscleGroup] = useState<MuscleGroup | "">("");
+  const [exercise, setExercise] = useState("");
+  const [customExercise, setCustomExercise] = useState("");
+  const [sets, setSets] = useState("");
+  const [reps, setReps] = useState("");
+
+  const [runType, setRunType] = useState("");
+  const [duration, setDuration] = useState("");
+  const [distance, setDistance] = useState("");
+
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   async function saveWorkout() {
-    if (!type || !duration) {
-      Alert.alert('Fel', 'Du måste fylla i typ av träning och tid');
-      return;
-    }
-
-    const newWorkout = {
+    let newWorkout: any = {
       id: Date.now(),
-      type,
-      duration,
-      notes,
-      date: new Date().toISOString(),
+      category,
+      date: selectedDate.toISOString(),
     };
 
-    try {
-      const existing = await AsyncStorage.getItem('workouts');
-      const workouts = existing ? JSON.parse(existing) : [];
-      workouts.push(newWorkout);
+    if (category === "gym") {
+      newWorkout = {
+        ...newWorkout,
+        muscleGroup,
+        exercise: customExercise || exercise,
+        sets,
+        reps,
+      };
+    } else if (category === "running") {
+      newWorkout = { ...newWorkout, runType, duration, distance };
+    }
 
-      await AsyncStorage.setItem('workouts', JSON.stringify(workouts));
+    const existing = await AsyncStorage.getItem("workouts");
+    const workouts = existing ? JSON.parse(existing) : [];
+    workouts.push(newWorkout);
+    await AsyncStorage.setItem("workouts", JSON.stringify(workouts));
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setCategory(null);
+    setStep(1);
+    setMuscleGroup("");
+    setExercise("");
+    setCustomExercise("");
+    setSets("");
+    setReps("");
+    setRunType("");
+    setDuration("");
+    setDistance("");
+  }
 
-      Alert.alert('Sparat', 'Träningspasset är sparat!');
-      setType('');
-      setDuration('');
-      setNotes('');
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Fel', 'Kunde inte spara träningspasset');
+  function renderStep() {
+    if (!category) {
+      return <StepCategory setCategory={setCategory} />;
+    }
+
+    if (category === "gym") {
+      switch (step) {
+        case 1:
+          return (
+            <StepGymMuscleGroup
+              muscleGroup={muscleGroup}
+              setMuscleGroup={setMuscleGroup}
+              next={() => setStep(2)}
+            />
+          );
+        case 2:
+          return (
+            <StepGymExercise
+              exercise={exercise}
+              setExercise={setExercise}
+              customExercise={customExercise}
+              setCustomExercise={setCustomExercise}
+              muscleGroup={muscleGroup}
+              next={() => setStep(3)}
+            />
+          );
+        case 3:
+          return (
+            <StepGymSetsReps
+              sets={sets}
+              reps={reps}
+              setSets={setSets}
+              setReps={setReps}
+              next={() => setStep(4)}
+            />
+          );
+        case 4:
+          return (
+            <StepGymDate
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              saveWorkout={saveWorkout}
+            />
+          );
+      }
+    }
+
+    if (category === "running") {
+      switch (step) {
+        case 1:
+          return (
+            <StepRunningType runType={runType} setRunType={setRunType} next={() => setStep(2)} />
+          );
+        case 2:
+          return (
+            <StepRunningDetails
+              duration={duration}
+              distance={distance}
+              setDuration={setDuration}
+              setDistance={setDistance}
+              next={() => setStep(3)}
+            />
+          );
+        case 3:
+          return (
+            <StepRunningDate
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              saveWorkout={saveWorkout}
+            />
+          );
+      }
     }
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Logga träningspass</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Typ av träning (t.ex. Gym, Löpning)"
-        value={type}
-        onChangeText={setType}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Tid (minuter)"
-        value={duration}
-        onChangeText={setDuration}
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Anteckningar (valfritt)"
-        value={notes}
-        onChangeText={setNotes}
-      />
-
-      <Button title="Spara pass" onPress={saveWorkout} />
-    </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>{renderStep()}</View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 15,
-    borderRadius: 5,
-  },
+  container: { flex: 1, justifyContent: "center", padding: 20 },
 });
