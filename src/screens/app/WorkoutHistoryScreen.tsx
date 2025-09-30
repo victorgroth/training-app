@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, StyleSheet } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Workout = {
-    id: number;
-  type: string;
-  duration: string;
-  notes: string;
+  id: number;
+  category: "gym" | "running";
   date: string;
+  muscleGroup?: string;
+  exercise?: string;
+  sets?: string;
+  reps?: string;
+  runType?: string;
+  duration?: string;
+  distance?: string;
 };
 
 export default function WorkoutHistoryScreen() {
@@ -15,30 +20,47 @@ export default function WorkoutHistoryScreen() {
 
   useEffect(() => {
     async function loadWorkouts() {
-      const stored = await AsyncStorage.getItem('workouts');
-      if (stored) {
-        setWorkouts(JSON.parse(stored));
+      const saved = await AsyncStorage.getItem("workouts");
+      if (saved) {
+        setWorkouts(JSON.parse(saved));
       }
     }
     loadWorkouts();
   }, []);
 
-  const renderItem = ({ item }: { item: Workout }) => (
-    <View style={styles.item}>
-      <Text style={styles.type}>{item.type}</Text>
-      <Text>Tid: {item.duration} min</Text>
-      {item.notes ? <Text>Anteckningar: {item.notes}</Text> : null}
-      <Text style={styles.date}>
-        {new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString()}
-      </Text>
-    </View>
-  );
+  function renderItem({ item }: { item: Workout }) {
+    return (
+      <View style={styles.card}>
+        <Text style={styles.date}>
+          Datum: {new Date(item.date).toLocaleDateString()}
+        </Text>
+
+        {item.category === "gym" ? (
+          <>
+            <Text style={styles.title}>Gym</Text>
+            <Text>Muskelgrupp: {item.muscleGroup}</Text>
+            <Text>Övning: {item.exercise}</Text>
+            <Text>
+              {item.sets} set × {item.reps} reps
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.title}>Löpning</Text>
+            <Text>Typ: {item.runType}</Text>
+            <Text>Tid: {item.duration} min</Text>
+            <Text>Distans: {item.distance} km</Text>
+          </>
+        )}
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Träningshistorik</Text>
+      <Text style={styles.header}>Träningshistorik</Text>
       {workouts.length === 0 ? (
-        <Text>Inga sparade träningspass ännu.</Text>
+        <Text>Inga träningspass loggade ännu.</Text>
       ) : (
         <FlatList
           data={workouts}
@@ -52,13 +74,14 @@ export default function WorkoutHistoryScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  item: {
+  header: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
+  card: {
+    backgroundColor: "#f9f9f9",
     padding: 15,
     marginBottom: 15,
-    backgroundColor: '#f0f0f0',
     borderRadius: 8,
+    elevation: 2,
   },
-  type: { fontSize: 18, fontWeight: 'bold' },
-  date: { fontSize: 12, color: '#666', marginTop: 5 },
+  date: { fontWeight: "bold", marginBottom: 5 },
+  title: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
 });
