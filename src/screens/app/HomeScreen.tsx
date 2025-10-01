@@ -1,37 +1,17 @@
 import React from "react";
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from "react-native";
 
-export default function HomeScreen({ navigation}: any) {
-    return (
-        <View style={styles.container}>
-      <Text style={styles.title}>Hemskärm</Text>
-
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Logga träningspass"
-          onPress={() => navigation.navigate('LogWorkout')}
-        />
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Träningshistorik"
-          onPress={() => navigation.navigate('WorkoutHistory')}
-        />
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Profil"
-          onPress={() => navigation.navigate('Profile')}
-        />
-      </View>
+export default function HomeScreen() {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>In Progress 💪</Text>
+      <Text style={styles.subtitle}>Din träningsresa pågår...</Text>
     </View>
-    );
+  );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
-  buttonContainer: { marginVertical: 10, width: '80%' },
+  container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#F5F5F5" },
+  title: { fontSize: 28, fontWeight: "bold", color: "#4CAF50", marginBottom: 10 },
+  subtitle: { fontSize: 18, color: "#555" },
 });
