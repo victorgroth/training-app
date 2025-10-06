@@ -34,4 +34,19 @@ Appen gör det enkelt att logga träningspass utan krångel, se historik och sta
   - AppStack (Home, LogWorkout, WorkoutHistory, Profile, Stats)  
   - TabNavigation för ikoner längst ner  
 
-## 📂 Struktur
+### Så här kör du projektet
+
+1. Kör npm install i terminalen
+2. npx expo start i terminalen. 
+
+### Uppfyllda krav
+Nr	Krav	Status
+[x]	Projektet använder minst 4 React Native-komponenter.
+[x]	Projektet använder minst 4 Expo SDK-komponenter.
+[x]	React Navigation används för navigering.
+[x]	Git & GitHub har använts under utvecklingen.
+[x]	Projektmappen innehåller en README.md med beskrivning och instruktioner.
+[x]	Uppgiften lämnas in i tid.
+[x]	Muntlig presentation genomförd.
+
+
